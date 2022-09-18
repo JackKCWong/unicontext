@@ -1,3 +1,5 @@
+// Package unicontext contains a context whose timeout can be reset. 
+// So one context can be used across multiple calls in a row.
 package unicontext 
 
 import (
@@ -36,6 +38,7 @@ func (this *UniContext) Err() error {
 	return this.ctx.Err()
 }
 
+// Value returns val from the parent context
 func (this *UniContext) Value(key any) any {
 	this.Lock()
 	defer this.Unlock()
@@ -43,7 +46,8 @@ func (this *UniContext) Value(key any) any {
 	return this.parent.Value(key)
 }
 
-// Reset cancels previous context automatically and return a new context with the same timeout
+// Reset cancels previous wrapped context automatically and wrap a new context of the same timeout
+// parent context is unchanged
 func (this *UniContext) Reset() *UniContext {
 	this.Lock()
 	defer this.Unlock()
@@ -55,7 +59,8 @@ func (this *UniContext) Reset() *UniContext {
 }
 
 
-// ResetTimeout cancels previous context automatically and return a new context with a new timeout
+// ResetTimeout cancels previous wrapped context automatically and wrap a new context of a new timeout
+// parent context is unchanged
 func (this *UniContext) ResetTimeout(tm time.Duration) *UniContext {
 	this.Lock()
 	defer this.Unlock()
@@ -67,6 +72,8 @@ func (this *UniContext) ResetTimeout(tm time.Duration) *UniContext {
 	return this
 }
 
+
+// Cancel the underlying context
 func (this *UniContext) Cancel() {
 	this.Lock()
 	defer this.Unlock()
@@ -75,6 +82,7 @@ func (this *UniContext) Cancel() {
 }
 
 
+// WithTimeOut creates a UniContext which wraps a context of the specified timeout, bounded by the parent context.
 func WithTimeOut(parent context.Context, timeout time.Duration) *UniContext {
 	c, cancel := context.WithTimeout(parent, timeout)
 
